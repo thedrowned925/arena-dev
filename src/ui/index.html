@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;">
+  <title>Arena Dev</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="toolbar">
+    <div class="logo"><span class="logo-mark">A<span class="star">✳</span></span><strong>ARENA <span>DEV</span></strong><small>DESKTOP</small></div>
+    <div class="browser-controls">
+      <button id="back" title="Geri">‹</button>
+      <button id="forward" title="İleri">›</button>
+      <button id="reload" title="Yenile">↻</button>
+      <div class="location"><span class="lock">◇</span> arena.ai / agent <span class="official">Canlı Arena</span></div>
+      <button id="home" class="textbutton">Ana Sayfa</button>
+      <button id="agent" class="textbutton selected">Agent Mode</button>
+      <button id="external" class="open-link" title="Arena'yı varsayılan tarayıcıda aç">↗</button>
+    </div>
+  </header>
+  <aside class="sidebar">
+    <div class="brandline"><span class="statusdot"></span><span id="browserStatus">Arena yükleniyor…</span></div>
+    <section class="panel">
+      <div class="sectiontitle">ÇALIŞMA ALANI</div>
+      <button class="folder" id="chooseWorkspace"><span class="folder-ico">▱</span><span id="workspace">Klasör seçilmedi</span><span class="arr">›</span></button>
+      <p class="hint">Dosya işlemleri yalnızca seçilen klasöre uygulanır. Terminal ayrıca onay gerektirir ve sandbox değildir.</p>
+    </section>
+    <section class="panel">
+      <div class="sectiontitle">YEREL ARAÇLAR</div>
+      <label for="toolName">Araç</label>
+      <select id="toolName">
+        <option value="list_files">▱ Klasör içeriği</option>
+        <option value="read_file">⌁ Metin dosyası oku</option>
+        <option value="search_files">⌕ Dosya içinde ara</option>
+        <option value="write_file">✎ Dosya yaz / düzenle</option>
+        <option value="run_command">▸ PowerShell / terminal</option>
+        <option value="desktop_screenshot">◫ Ekran görüntüsü</option>
+        <option value="desktop_click">⊙ Fare tıklaması</option>
+        <option value="desktop_type">⌨ Klavyeyle yaz</option>
+      </select>
+      <label for="toolArgs">Argümanlar (JSON)</label>
+      <textarea spellcheck="false" id="toolArgs" rows="5">{"directory":"."}</textarea>
+      <button class="primary" id="execute">İşlemi çalıştır <span>↗</span></button>
+      <div class="approval-note">Kritik işlemlerde Windows onay penceresi açılır. Arena ile otomatik araç bağlantısı yoktur.</div>
+    </section>
+    <section class="panel">
+      <div class="sectiontitle">GITHUB PROJESİ</div>
+      <p class="hint first">Arena Agent Mode, GitHub deposunun ayrı bir kopyasında çalışabilir. Değişiklikleri inceleyip PR'ı birleştirdikten sonra yerel depoyu güncelleyebilirsin.</p>
+      <button class="secondary" id="gitPull">↓ git pull --ff-only</button>
+    </section>
+    <section class="panel output-panel">
+      <div class="output-head"><div class="sectiontitle">SON ARAÇ SONUCU</div><button id="copy" title="Sonucu kopyala">Kopyala ⧉</button></div>
+      <pre id="output">Henüz işlem yapılmadı.</pre>
+      <img id="screenshot" alt="Yerel ekran görüntüsü" hidden>
+    </section>
+    <div class="footer">
+      <div><span class="statusdot"></span> Yerel araçlar hazır</div>
+      <p>Yanıtları Arena üretir. Bu uygulama Arena oturumuna müdahale etmez veya mesajlarını otomatik okumaz.</p>
+    </div>
+  </aside>
+  <div class="remote-backdrop"><div class="loader">Arena sohbeti bu alanda açılacak.</div></div>
+  <div id="toast" aria-live="polite" role="status"></div>
+  <script src="./renderer.js"></script>
+</body>
+</html>

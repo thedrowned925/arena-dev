@@ -141,6 +141,9 @@ async function executeTool(name, args = {}, ctx) {
     return { text: 'Metin aktif pencereye gönderildi (' + args.text.length + ' karakter).' };
   }
   if (name === 'desktop_screenshot') {
+    win();
+    const crypto = require('node:crypto');
+    const target = path.join(ctx.userData, 'arena-shot-' + crypto.randomUUID() + '.png');
     const script = [
       '$ErrorActionPreference="Stop"',
       'Add-Type -AssemblyName System.Windows.Forms',
@@ -154,16 +157,16 @@ async function executeTool(name, args = {}, ctx) {
       '$small=New-Object System.Drawing.Bitmap($w,$h)',
       '$g2=[System.Drawing.Graphics]::FromImage($small)',
       '$g2.DrawImage($bmp,0,0,$w,$h)',
-      '$stream=New-Object System.IO.MemoryStream',
-      '$small.Save($stream,[System.Drawing.Imaging.ImageFormat]::Png)',
-      '[Convert]::ToBase64String($stream.ToArray())',
-      '$stream.Dispose();$g2.Dispose();$g.Dispose();$small.Dispose();$bmp.Dispose()'
+      '$small.Save($env:ARENA_SCREEN_PATH,[System.Drawing.Imaging.ImageFormat]::Png)',
+      '$g2.Dispose();$g.Dispose();$small.Dispose();$bmp.Dispose()'
     ].join('\n');
-    const r = await powershell(script, ctx, {}, 30000);
-    if (r.code !== 0) throw new Error(r.stderr || 'Ekran yakalanamadı.');
-    const b64 = r.stdout.trim();
-    if (!/^[A-Za-z0-9+/=\s]+$/.test(b64) || b64.length > 7_000_000) throw new Error('Görsel boyutu veya biçimi geçersiz.');
-    return { text: 'Ana ekran görüntüsü alındı. Görsel model destekliyorsa sonraki turda aktarılır.', imageBase64: b64 };
+    try {
+      const r = await powershell(script, ctx, { ARENA_SCREEN_PATH: target }, 30000);
+      if (r.code !== 0) throw new Error(r.stderr || 'Ekran yakalanamadı.');
+      const image = fs.readFileSync(target);
+      if (image.byteLength > 5_000_000) throw new Error('5 MB görüntü sınırı aşıldı.');
+      return { text: 'Ekran görüntüsü yerel panelde gösteriliyor.', imageBase64: image.toString('base64') };
+    } finally { try { fs.unlinkSync(target); } catch {} }
   }
   throw new Error('Araç uygulanamadı.');
 }

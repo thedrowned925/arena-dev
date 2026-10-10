@@ -2,60 +2,23 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { verifiedWorkspace } = require('./security.cjs');
-
-const API_BASE = 'https://api.preview.arena.ai';
-const DEFAULT = Object.freeze({ workspace: '', model: 'claude-sonnet-4-6' });
-
 class Settings {
-  constructor(userData, safeStorage) {
+  constructor(userData) {
     this.file = path.join(userData, 'settings.json');
-    this.safeStorage = safeStorage;
-    this.sessionKey = '';
-    this.data = { ...DEFAULT };
+    this.data = { workspace: '', model: 'qwen2.5-coder:7b' };
     try {
-      const parsed = JSON.parse(fs.readFileSync(this.file, 'utf8'));
-      if (typeof parsed.workspace === 'string') this.data.workspace = parsed.workspace;
-      if (typeof parsed.model === 'string') this.data.model = parsed.model;
-      if (typeof parsed.encryptedKey === 'string') this.data.encryptedKey = parsed.encryptedKey;
-    } catch { /* First launch or invalid settings. */ }
+      const saved = JSON.parse(fs.readFileSync(this.file, 'utf8'));
+      if (typeof saved.workspace === 'string') this.data.workspace = saved.workspace;
+      if (typeof saved.model === 'string') this.data.model = saved.model;
+    } catch {}
   }
-  public() {
-    return {
-      workspace: this.data.workspace,
-      model: this.data.model,
-      apiBase: API_BASE,
-      hasKey: Boolean(this.apiKey()),
-      encryptedStorage: Boolean(this.safeStorage?.isEncryptionAvailable()),
-    };
-  }
-  apiKey() {
-    if (process.env.ARENA_API_KEY) return process.env.ARENA_API_KEY.trim();
-    if (this.sessionKey) return this.sessionKey;
-    if (this.data.encryptedKey && this.safeStorage?.isEncryptionAvailable()) {
-      try { return this.safeStorage.decryptString(Buffer.from(this.data.encryptedKey, 'base64')); }
-      catch { return ''; }
-    }
-    return '';
-  }
+  public() { return { ...this.data, ollamaUrl: 'http://127.0.0.1:11434', arenaUrl: 'https://arena.ai/' }; }
   update(patch) {
-    if (Object.hasOwn(patch, 'workspace')) {
-      this.data.workspace = patch.workspace ? verifiedWorkspace(patch.workspace) : '';
-    }
+    if (Object.hasOwn(patch, 'workspace')) this.data.workspace = patch.workspace ? verifiedWorkspace(patch.workspace) : '';
     if (Object.hasOwn(patch, 'model')) {
       const model = String(patch.model || '').trim();
-      if (!/^[\w./:-]{2,120}$/.test(model)) throw new Error('Model adı geçersiz.');
+      if (!/^[a-zA-Z0-9_.:/-]{2,120}$/.test(model)) throw new Error('Model adı geçersiz.');
       this.data.model = model;
-    }
-    this.save();
-    return this.public();
-  }
-  setKey(key) {
-    if (typeof key !== 'string' || key.length > 512) throw new Error('API anahtarı geçersiz.');
-    this.sessionKey = key.trim();
-    delete this.data.encryptedKey;
-    if (this.sessionKey && this.safeStorage?.isEncryptionAvailable()) {
-      this.data.encryptedKey = this.safeStorage.encryptString(this.sessionKey).toString('base64');
-      this.sessionKey = '';
     }
     this.save();
     return this.public();
@@ -65,4 +28,4 @@ class Settings {
     fs.writeFileSync(this.file, JSON.stringify(this.data, null, 2), { mode: 0o600 });
   }
 }
-module.exports = { Settings, API_BASE };
+module.exports = { Settings };

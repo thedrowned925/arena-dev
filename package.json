@@ -4,10 +4,10 @@
   "private": true,
   "description": "Windows Arena.ai desktop workspace with permission-controlled local tools",
   "main": "src/main.cjs",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "scripts": {
     "start": "electron .",
-    "test": "node --test test/*.test.cjs",
+    "test": "node --test",
     "dist": "electron-builder --win nsis --x64",
     "pack": "electron-builder --dir"
   },
